@@ -10,13 +10,42 @@ if (!fs.existsSync(path.dirname(DB_DIR))) {
   fs.mkdirSync(path.dirname(DB_DIR), { recursive: true });
 }
 
-// Clean up stale lock/pid files if process was terminated uncleanly
-const pidFile = path.join(DB_DIR, 'postmaster.pid');
-if (fs.existsSync(pidFile)) {
-  try {
-    fs.unlinkSync(pidFile);
-  } catch (e) {
-    // ignore
+// Clean up stale lock/pid files and ensure essential postgres subdirectories exist
+if (fs.existsSync(DB_DIR)) {
+  const pidFile = path.join(DB_DIR, 'postmaster.pid');
+  if (fs.existsSync(pidFile)) {
+    try {
+      fs.unlinkSync(pidFile);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Ensure standard PostgreSQL subdirectories exist if resumed from storage
+  const essentialDirs = [
+    'pg_notify', 'pg_tblspc', 'pg_twophase', 'pg_snapshots', 'pg_commit_ts',
+    'pg_stat', 'pg_stat_tmp', 'pg_replslot', 'pg_dynshmem', 'pg_logical',
+    'pg_multixact', 'pg_subtrans', 'pg_wal', 'pg_xact'
+  ];
+  for (const d of essentialDirs) {
+    const dirPath = path.join(DB_DIR, d);
+    if (!fs.existsSync(dirPath)) {
+      try {
+        fs.mkdirSync(dirPath, { recursive: true });
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  // Ensure postgresql.conf exists
+  const confFile = path.join(DB_DIR, 'postgresql.conf');
+  if (!fs.existsSync(confFile)) {
+    try {
+      fs.writeFileSync(confFile, '# Minimal auto-generated postgresql.conf\nlisten_addresses = \'*\'\n');
+    } catch (e) {
+      // ignore
+    }
   }
 }
 

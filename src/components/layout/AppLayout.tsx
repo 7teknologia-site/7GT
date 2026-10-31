@@ -48,7 +48,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentView, onViewChange,
 
   // If superadmin, add 7Teknologia SaaS Admin item
   if (user?.is_superadmin) {
-    navItems.push({ id: 'superadmin', label: 'SaaS 7Teknologia', icon: Building2 });
+    navItems.push({ id: 'superadmin', label: 'Console 7Teknologia', icon: Building2 });
   }
 
   const roleLabels: Record<string, string> = {
@@ -83,15 +83,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentView, onViewChange,
         <div className="p-5 border-b border-emerald-900/40 flex items-center justify-between bg-[#061913]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-950/40 border border-amber-400/30 font-serif font-bold text-stone-950 text-xl">
-              7T
+              7
             </div>
             <div>
-              <div className="text-xs uppercase tracking-widest text-amber-400 font-semibold">
-                7Teknologia
+              <div className="text-sm font-bold text-stone-100 tracking-tight leading-none">
+                7 Gestão de Terreiros
               </div>
-              <h1 className="text-sm font-bold text-stone-100 tracking-tight">
-                Gestão de Terreiros
-              </h1>
+              <div className="text-[10px] text-amber-400/90 font-medium mt-1">
+                Uma solução 7Teknologia.
+              </div>
             </div>
           </div>
           <button

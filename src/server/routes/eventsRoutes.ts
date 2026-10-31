@@ -118,6 +118,6 @@ eventsRouter.post('/:id/checkin', async (req: AuthenticatedRequest, res) => {
     res.status(201).json({ success: true, attendeeId, message: 'Presença confirmada!' });
   } catch (err: any) {
     console.error('Checkin error:', err);
-    res.status(500).json({ error: 'Erro ao registrar presença.' });
+    res.status(500).json({ error: 'Erro ao registrar presença: ' + err.message });
   }
 });

@@ -39,10 +39,13 @@ function MainRouter() {
     return (
       <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center text-stone-400">
         <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-3" />
-        <p className="text-xs uppercase tracking-widest text-amber-400 font-bold">
-          7Teknologia Gestão de Terreiros
+        <p className="text-sm uppercase tracking-wider text-amber-400 font-bold">
+          7 Gestão de Terreiros
         </p>
-        <p className="text-xs text-stone-500 mt-1">Carregando dados seguros no PostgreSQL...</p>
+        <p className="text-[11px] text-emerald-400/80 font-medium mt-0.5">
+          Uma solução 7Teknologia.
+        </p>
+        <p className="text-xs text-stone-500 mt-2">Carregando dados seguros no PostgreSQL...</p>
       </div>
     );
   }

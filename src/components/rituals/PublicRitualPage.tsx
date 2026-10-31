@@ -429,6 +429,19 @@ export const PublicRitualPage: React.FC<PublicRitualPageProps> = ({
           )}
         </div>
       </div>
+
+      {/* Institutional Signature Footer */}
+      <div className="max-w-4xl mx-auto pt-8 pb-4 text-center border-t border-emerald-900/30 px-4">
+        <p className="text-xs font-semibold text-stone-200">
+          7 Gestão de Terreiros
+        </p>
+        <p className="text-[11px] text-amber-400 font-medium mt-0.5">
+          Uma solução 7Teknologia.
+        </p>
+        <p className="text-[10px] text-stone-400 mt-1">
+          Plataforma completa de gestão administrativa, financeira e organizacional para terreiros.
+        </p>
+      </div>
     </div>
   );
 };

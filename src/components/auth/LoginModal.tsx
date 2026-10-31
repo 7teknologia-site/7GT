@@ -70,16 +70,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onOpenRegister, onPrevie
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center mx-auto shadow-xl shadow-amber-950/40 border border-amber-400/40 font-serif font-bold text-stone-950 text-2xl">
-            7T
-          </div>
-          <div className="text-xs uppercase tracking-widest text-amber-400 font-bold">
-            7Teknologia SaaS
+            7
           </div>
           <h1 className="text-2xl font-bold text-stone-100 tracking-tight">
-            Gestão de Terreiros
+            7 Gestão de Terreiros
           </h1>
-          <p className="text-xs text-stone-400">
-            Plataforma Multi-tenant com PostgreSQL, Rituais e CRM
+          <div className="inline-block px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-700/50 text-xs text-amber-300 font-medium">
+            Uma solução 7Teknologia.
+          </div>
+          <p className="text-xs text-stone-400 max-w-sm mx-auto">
+            Plataforma completa de gestão administrativa, financeira e organizacional para terreiros.
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onOpenRegister, onPrevie
               onClick={onOpenRegister}
               className="text-xs text-amber-300 hover:underline font-semibold block w-full"
             >
-              Cadastrar Novo Terreiro na Plataforma 7Teknologia
+              Cadastrar Novo Terreiro — 7 Gestão de Terreiros
             </button>
             <button
               onClick={onPreviewPublic}

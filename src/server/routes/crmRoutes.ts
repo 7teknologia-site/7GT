@@ -199,7 +199,7 @@ crmRouter.get('/contacts/:id', async (req: AuthenticatedRequest, res) => {
     res.json({ contact, activities });
   } catch (err: any) {
     console.error('CRM 360 error:', err);
-    res.status(500).json({ error: 'Erro ao carregar perfil do contato.' });
+    res.status(500).json({ error: 'Erro ao carregar perfil do contato: ' + err.message });
   }
 });
 

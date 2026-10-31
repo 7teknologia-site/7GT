@@ -18,7 +18,7 @@ function logFail(name: string, error: string) {
 
 async function runHostileAudit() {
   console.log('========================================================================');
-  console.log('🛡️  7TEKNOLOGIA GESTÃO DE TERREIROS — BATERIA DE AUDITORIA HOSTIL V2');
+  console.log('🛡️  7 GESTÃO DE TERREIROS (7Teknologia) — AUDITORIA HOSTIL V2');
   console.log('    Equipe Independente: Segurança, PostgreSQL, Finanças, Multi-Tenant');
   console.log('========================================================================\n');
 

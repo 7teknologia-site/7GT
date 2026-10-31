@@ -28,8 +28,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    product: '7Teknologia Gestão de Terreiros',
-    version: '1.0.0-saas',
+    product: '7 Gestão de Terreiros',
+    developer: '7Teknologia',
+    signature: 'Uma solução 7Teknologia.',
+    version: '2.0.0-audited',
     timestamp: new Date().toISOString()
   });
 });
@@ -70,7 +72,7 @@ async function startServer() {
     }
 
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[7Teknologia] Gestão de Terreiros SaaS running at http://0.0.0.0:${PORT}`);
+      console.log(`[7Teknologia] 7 Gestão de Terreiros running at http://0.0.0.0:${PORT}`);
     });
   } catch (err) {
     console.error('Fatal error starting server:', err);

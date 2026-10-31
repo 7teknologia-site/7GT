@@ -17,7 +17,7 @@ function assert(condition: boolean, testName: string, detail?: string) {
 
 async function runTests() {
   console.log('====================================================');
-  console.log('🧪 7TEKNOLOGIA GESTÃO DE TERREIROS - SUITE DE TESTES');
+  console.log('🧪 7 GESTÃO DE TERREIROS (7Teknologia) — TESTES');
   console.log('   Isolamento Multi-tenant, Segurança & Persistência');
   console.log('====================================================\n');
 

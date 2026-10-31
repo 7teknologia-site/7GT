@@ -94,7 +94,7 @@ export const SuperadminView: React.FC = () => {
   if (isLoading) {
     return (
       <div className="py-12 text-center text-xs text-stone-400">
-        Carregando console executivo do SaaS 7Teknologia...
+        Carregando console executivo — 7 Gestão de Terreiros (7Teknologia)...
       </div>
     );
   }
@@ -104,13 +104,13 @@ export const SuperadminView: React.FC = () => {
       {/* Header */}
       <div>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-2">
-          <Building2 size={14} /> Console Executivo Global
+          <Building2 size={14} /> Console Executivo 7Teknologia
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-stone-100">
-          Painel SaaS 7Teknologia Gestão de Terreiros
+          Painel SaaS — 7 Gestão de Terreiros
         </h1>
         <p className="text-xs md:text-sm text-stone-400 mt-1">
-          Visão consolidada de todas as casas cadastradas, faturamento recorrente mensal (MRR) e governança multi-tenant.
+          Plataforma completa de gestão administrativa, financeira e organizacional para terreiros. Uma solução 7Teknologia.
         </p>
       </div>
 
