@@ -169,6 +169,56 @@ async function runHostileAudit() {
     logFail('Escalonamento de Privilégios', `Esperado 403, recebido ${privEscRes.status}`);
   }
 
+  // Test 6B: Block inactive users (is_active = false) in authenticateToken and login
+  const adminLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'admin@7teknologia.com', password: 'admin123' })
+  });
+  const adminData = await adminLoginRes.json();
+  const tokenSuper = adminData.token;
+
+  // Deactivate user usr_membro_aruanda
+  await fetch(`${BASE_URL}/api/admin/users/usr_membro_aruanda/toggle-status`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenSuper}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ is_active: false })
+  });
+
+  // Attempt request with tokenMemA
+  const inactiveTokenRes = await fetch(`${BASE_URL}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${tokenMemA}`,
+      'X-Tenant-Id': 'tenant-aruanda'
+    }
+  });
+
+  // Also attempt login with inactive user
+  const inactiveLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'membro@aruanda.org', password: 'aruanda123' })
+  });
+
+  // Reactivate user usr_membro_aruanda
+  await fetch(`${BASE_URL}/api/admin/users/usr_membro_aruanda/toggle-status`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenSuper}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ is_active: true })
+  });
+
+  if (inactiveTokenRes.status === 403 && inactiveLoginRes.status === 401) {
+    logPass('Bloqueio explícito de usuário inativo (is_active=false) em authenticateToken (HTTP 403) e login (HTTP 401)');
+  } else {
+    logFail('Bloqueio de usuário inativo', `Token HTTP: ${inactiveTokenRes.status}, Login HTTP: ${inactiveLoginRes.status}`);
+  }
+
   console.log('\n--- FASE 3: AUDITORIA FINANCEIRA E INTEGRIDADE TRANSACIONAL ---');
 
   // Test 7: Overdraft rejection on transfer

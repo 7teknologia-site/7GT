@@ -9,8 +9,9 @@ interface LoginModalProps {
 
 export const LoginModal: React.FC<LoginModalProps> = ({ onOpenRegister, onPreviewPublic }) => {
   const { login } = useAuth();
-  const [email, setEmail] = useState('dirigente@aruanda.org');
-  const [password, setPassword] = useState('aruanda123');
+  const isProduction = Boolean(import.meta.env.PROD);
+  const [email, setEmail] = useState(isProduction ? '' : 'dirigente@aruanda.org');
+  const [password, setPassword] = useState(isProduction ? '' : 'aruanda123');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -83,41 +84,43 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onOpenRegister, onPrevie
           </p>
         </div>
 
-        {/* Quick Demo Access Bar */}
-        <div className="p-4 rounded-xl bg-stone-900 border border-emerald-900/50 space-y-2.5">
-          <span className="text-[11px] uppercase tracking-wider font-bold text-amber-400 block text-center">
-            Acesso Rápido com Contas Oficiais de Demonstração
-          </span>
-          <div className="grid grid-cols-1 gap-2">
-            {demoAccounts.map((demo) => {
-              const Icon = demo.icon;
-              return (
-                <button
-                  key={demo.email}
-                  type="button"
-                  onClick={() => {
-                    setEmail(demo.email);
-                    setPassword(demo.pass);
-                  }}
-                  className={`p-2.5 rounded-lg border text-left transition-all flex items-center justify-between hover:scale-[1.01] ${demo.color} ${
-                    email === demo.email ? 'ring-2 ring-amber-400' : ''
-                  }`}
-                >
-                  <div className="truncate pr-2">
-                    <div className="text-xs font-bold text-stone-100 truncate flex items-center gap-1.5">
-                      <Icon size={13} className="text-amber-400 shrink-0" />
-                      <span>{demo.label}</span>
+        {/* Quick Demo Access Bar (Only in non-production environments) */}
+        {!isProduction && (
+          <div className="p-4 rounded-xl bg-stone-900 border border-emerald-900/50 space-y-2.5">
+            <span className="text-[11px] uppercase tracking-wider font-bold text-amber-400 block text-center">
+              Acesso Rápido com Contas de Demonstração (Desenvolvimento/Testes)
+            </span>
+            <div className="grid grid-cols-1 gap-2">
+              {demoAccounts.map((demo) => {
+                const Icon = demo.icon;
+                return (
+                  <button
+                    key={demo.email}
+                    type="button"
+                    onClick={() => {
+                      setEmail(demo.email);
+                      setPassword(demo.pass);
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition-all flex items-center justify-between hover:scale-[1.01] ${demo.color} ${
+                      email === demo.email ? 'ring-2 ring-amber-400' : ''
+                    }`}
+                  >
+                    <div className="truncate pr-2">
+                      <div className="text-xs font-bold text-stone-100 truncate flex items-center gap-1.5">
+                        <Icon size={13} className="text-amber-400 shrink-0" />
+                        <span>{demo.label}</span>
+                      </div>
+                      <div className="text-[11px] text-stone-400 truncate">{demo.house}</div>
                     </div>
-                    <div className="text-[11px] text-stone-400 truncate">{demo.house}</div>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-black/40 text-stone-300 shrink-0">
-                    {demo.role}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-black/40 text-stone-300 shrink-0">
+                      {demo.role}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Login Card */}
         <div className="p-6 rounded-2xl bg-stone-900 border border-emerald-900/40 shadow-xl space-y-4">

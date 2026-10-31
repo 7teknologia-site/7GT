@@ -14,28 +14,21 @@ let pgliteInstance: PGlite | null = null;
 
 export function getDb(): PGlite {
   if (!pgliteInstance) {
-    try {
-      if (fs.existsSync(DB_DIR)) {
-        const pidFile = path.join(DB_DIR, 'postmaster.pid');
-        if (fs.existsSync(pidFile)) {
-          try {
-            fs.unlinkSync(pidFile);
-          } catch (e) {
-            // ignore
-          }
+    if (fs.existsSync(DB_DIR)) {
+      const pidFile = path.join(DB_DIR, 'postmaster.pid');
+      if (fs.existsSync(pidFile)) {
+        try {
+          fs.unlinkSync(pidFile);
+        } catch (e) {
+          console.warn('[DB] Não foi possível remover postmaster.pid residual:', e);
         }
       }
+    }
+    try {
       pgliteInstance = new PGlite(DB_DIR);
     } catch (err) {
-      console.warn('[DB] Recovery needed on PGlite cluster, reinitializing:', err);
-      if (fs.existsSync(DB_DIR)) {
-        try {
-          fs.rmSync(DB_DIR, { recursive: true, force: true });
-        } catch (e) {
-          // ignore
-        }
-      }
-      pgliteInstance = new PGlite(DB_DIR);
+      console.error('[DB FATAL] Falha ao abrir o banco de dados PostgreSQL. Preservando arquivos existentes intactos sem recriação ou exclusão destrutiva:', err);
+      throw new Error(`Falha irrecuperável ao inicializar cluster PGlite: ${err instanceof Error ? err.message : String(err)}. Nenhuma alteração destrutiva foi permitida.`);
     }
   }
   return pgliteInstance;
@@ -103,14 +96,23 @@ export async function initDatabase() {
   // Check if initial seeding is needed
   const planCount = await queryOne<{ count: string }>('SELECT COUNT(*) as count FROM plans');
   if (parseInt(planCount?.count || '0', 10) === 0) {
-    console.log('[DB] Seeding initial SaaS plans, tenants, users, and operational data...');
-    await seedDatabase();
-    console.log('[DB] Seeding completed successfully.');
+    console.log('[DB] Seeding foundational SaaS plans...');
+    await seedPlans();
+    console.log('[DB] Foundational SaaS plans configured.');
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction) {
+      console.log('[DB] PRODUÇÃO ATIVA: Criação de credenciais e registros de demonstração foi bloqueada.');
+      await seedProductionSuperadmin();
+    } else {
+      console.log('[DB] AMBIENTE DE DESENVOLVIMENTO/TESTES: Populando terreiros e dados de demonstração...');
+      await seedDemoData();
+      console.log('[DB] Dados de demonstração carregados com sucesso.');
+    }
   }
 }
 
-async function seedDatabase() {
-  // 1. Seed Plans
+export async function seedPlans() {
   const plans = [
     {
       id: 'plan_essencial',
@@ -157,6 +159,24 @@ async function seedDatabase() {
       [p.id, p.code, p.name, p.price, p.max_members, p.max_rituals, p.features]
     );
   }
+}
+
+async function seedProductionSuperadmin() {
+  const prodEmail = process.env.INITIAL_SUPERADMIN_EMAIL?.trim();
+  const prodPass = process.env.INITIAL_SUPERADMIN_PASSWORD;
+  if (prodEmail && prodPass && prodPass.length >= 12) {
+    const salt = await bcrypt.genSalt(12);
+    const hash = await bcrypt.hash(prodPass, salt);
+    await query(
+      `INSERT INTO users (id, email, password_hash, full_name, is_superadmin, is_active)
+       VALUES ($1, $2, $3, $4, true, true) ON CONFLICT (email) DO NOTHING`,
+      ['usr_superadmin_prod', prodEmail, hash, 'Administrador 7Teknologia']
+    );
+    console.log(`[DB] Superadministrador inicial provisionado com sucesso para: ${prodEmail}`);
+  }
+}
+
+async function seedDemoData() {
 
   // 2. Tenants (Two realistic distinct Terreiros for isolation testing)
   const tenantA = {

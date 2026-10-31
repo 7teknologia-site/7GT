@@ -109,3 +109,28 @@ adminRouter.post('/tenants/:id/toggle-status', async (req: AuthenticatedRequest,
     res.status(500).json({ error: 'Erro ao alterar status.' });
   }
 });
+
+// Toggle user status (activation/deactivation)
+adminRouter.post('/users/:id/toggle-status', async (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+  const { is_active } = req.body;
+  const user = req.user!;
+
+  try {
+    await query('UPDATE users SET is_active = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [is_active, id]);
+
+    await recordAuditLog({
+      actorId: user.id,
+      actorName: user.full_name,
+      action: is_active ? 'USER_ACTIVATED' : 'USER_DEACTIVATED',
+      entityType: 'users',
+      entityId: id,
+      details: { is_active }
+    });
+
+    res.json({ success: true, message: `Status do usuário atualizado para ${is_active ? 'ativo' : 'inativo'}.` });
+  } catch (err: any) {
+    console.error('Toggle user status error:', err);
+    res.status(500).json({ error: 'Erro ao alterar status do usuário.' });
+  }
+});

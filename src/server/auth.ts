@@ -1,9 +1,34 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { queryOne, query } from './db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || '7teknologia_terreiros_secure_jwt_secret_2026';
+let ephemeralSecret: string | null = null;
+
+export function getJwtSecret(): string {
+  const envSecret = process.env.JWT_SECRET?.trim();
+  if (process.env.NODE_ENV === 'production') {
+    if (!envSecret || envSecret.length < 32) {
+      throw new Error(
+        'FALHA CRÍTICA DE SEGURANÇA: A variável de ambiente JWT_SECRET é estritamente obrigatória em produção e deve conter no mínimo 32 caracteres seguros.'
+      );
+    }
+    return envSecret;
+  }
+
+  if (envSecret && envSecret.length >= 16) {
+    return envSecret;
+  }
+
+  // Gera segredo criptográfico aleatório único e não-previsível para a sessão em desenvolvimento/testes
+  if (!ephemeralSecret) {
+    ephemeralSecret = crypto.randomBytes(32).toString('hex');
+  }
+  return ephemeralSecret;
+}
+
+export const JWT_SECRET = getJwtSecret();
 
 export interface AuthUser {
   id: string;
@@ -11,6 +36,7 @@ export interface AuthUser {
   full_name: string;
   is_superadmin: boolean;
   avatar_url?: string;
+  is_active?: boolean;
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -27,7 +53,7 @@ export function generateToken(user: AuthUser, activeTenantId?: string): string {
       isSuperadmin: user.is_superadmin,
       activeTenantId
     },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '7d' }
   );
 }
@@ -41,14 +67,18 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, getJwtSecret()) as any;
     const user = await queryOne<AuthUser>(
       'SELECT id, email, full_name, avatar_url, is_superadmin, is_active FROM users WHERE id = $1',
       [payload.userId]
     );
 
     if (!user) {
-      return res.status(401).json({ error: 'Usuário não encontrado ou inativo.' });
+      return res.status(401).json({ error: 'Usuário não encontrado.' });
+    }
+
+    if (user.is_active === false) {
+      return res.status(403).json({ error: 'Acesso negado. Usuário inativo ou desativado pela administração.' });
     }
 
     req.user = user;

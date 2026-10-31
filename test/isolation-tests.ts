@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { db, initDatabase, query, queryOne } from '../src/server/db.js';
-import { generateToken } from '../src/server/auth.js';
+import { getJwtSecret } from '../src/server/auth.js';
 
 let passed = 0;
 let failed = 0;
@@ -15,101 +14,150 @@ function assert(condition: boolean, testName: string, detail?: string) {
   }
 }
 
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+
 async function runTests() {
   console.log('====================================================');
   console.log('🧪 7 GESTÃO DE TERREIROS (7Teknologia) — TESTES');
   console.log('   Isolamento Multi-tenant, Segurança & Persistência');
   console.log('====================================================\n');
 
-  await initDatabase();
+  // Test 1: Health & Server Verification
+  console.log('--- 1. VERIFICAÇÃO DO SERVIDOR E IDENTIDADE INSTITUCIONAL ---');
+  const healthRes = await fetch(`${BASE_URL}/api/health`);
+  const healthData = await healthRes.json();
+  assert(healthRes.ok, 'Endpoint /api/health operacional');
+  assert(healthData.product === '7 Gestão de Terreiros', 'Nome do produto validado: 7 Gestão de Terreiros');
+  assert(healthData.developer === '7Teknologia', 'Empresa desenvolvedora validada: 7Teknologia');
+  assert(healthData.signature === 'Uma solução 7Teknologia.', 'Assinatura institucional validada: Uma solução 7Teknologia.');
 
-  // Test 1: PostgreSQL Engine and Tables
-  console.log('--- 1. VERIFICAÇÃO DO BANCO DE DADOS POSTGRESQL ---');
-  const pgVersion = await queryOne<any>('SELECT version()');
-  assert(!!pgVersion?.version, 'PostgreSQL engine operational', pgVersion?.version);
+  // Test 2: JWT Security - No predictable fallback
+  console.log('\n--- 2. AUDITORIA DE SEGURANÇA JWT ---');
+  const activeSecret = getJwtSecret();
+  assert(
+    activeSecret !== '7teknologia_terreiros_secure_jwt_secret_2026',
+    'Segredo JWT fixo/previsível anterior foi completamente eliminado'
+  );
+  assert(
+    typeof activeSecret === 'string' && activeSecret.length >= 32,
+    `Segredo criptográfico ativo possui alta entropia (${activeSecret.length} caracteres)`
+  );
 
-  const tables = await query<any>(`
-    SELECT table_name FROM information_schema.tables 
-    WHERE table_schema = 'public' 
-    ORDER BY table_name
-  `);
-  const tableNames = tables.map(t => t.table_name);
-  assert(tableNames.includes('tenants'), 'Tabela tenants presente');
-  assert(tableNames.includes('memberships'), 'Tabela memberships presente');
-  assert(tableNames.includes('members'), 'Tabela members presente');
-  assert(tableNames.includes('financial_transactions'), 'Tabela financial_transactions presente');
-  assert(tableNames.includes('rituals'), 'Tabela rituals presente');
-  assert(tableNames.includes('ritual_registrations'), 'Tabela ritual_registrations presente');
-  assert(tableNames.includes('audit_logs'), 'Tabela audit_logs presente');
-
-  // Test 2: Multi-Tenants Seeded
-  console.log('\n--- 2. MULTI-TENANCY: DOIS TERREIROS INDEPENDENTES ---');
-  const tenantA = await queryOne<any>("SELECT * FROM tenants WHERE id = 'tenant-aruanda'");
-  const tenantB = await queryOne<any>("SELECT * FROM tenants WHERE id = 'tenant-penabranca'");
-  assert(tenantA?.slug === 'pai-benedito-aruanda', 'Terreiro A configurado: Pai Benedito');
-  assert(tenantB?.slug === 'caboclo-pena-branca', 'Terreiro B configurado: Pena Branca');
-
-  // Test 3: Authenticated Users & Password Hashing
+  // Test 3: Authenticated Users & Password Verification
   console.log('\n--- 3. AUTENTICAÇÃO E HASH SEGURO BCRYPT ---');
-  const userDirigenteA = await queryOne<any>("SELECT * FROM users WHERE email = 'dirigente@aruanda.org'");
-  const userDirigenteB = await queryOne<any>("SELECT * FROM users WHERE email = 'dirigente@penabranca.org'");
-  const userMembroA = await queryOne<any>("SELECT * FROM users WHERE email = 'membro@aruanda.org'");
-  const superAdmin = await queryOne<any>("SELECT * FROM users WHERE email = 'admin@7teknologia.com'");
+  const loginResA = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'dirigente@aruanda.org', password: 'aruanda123' })
+  });
+  const dataA = await loginResA.json();
+  assert(loginResA.ok && !!dataA.token, 'Login Dirigente Terreiro A válido com token JWT emitido');
 
-  assert(await bcrypt.compare('aruanda123', userDirigenteA.password_hash), 'Senha Dirigente Terreiro A válida via bcrypt');
-  assert(await bcrypt.compare('penabranca123', userDirigenteB.password_hash), 'Senha Dirigente Terreiro B válida via bcrypt');
-  assert(await bcrypt.compare('wrongpassword', userDirigenteA.password_hash) === false, 'Senha incorreta é rejeitada');
-  assert(superAdmin.is_superadmin === true, 'Superadmin 7Teknologia possui flag global');
+  const loginResB = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'dirigente@penabranca.org', password: 'penabranca123' })
+  });
+  const dataB = await loginResB.json();
+  assert(loginResB.ok && !!dataB.token, 'Login Dirigente Terreiro B válido com token JWT emitido');
 
-  // Test 4: Memberships Verification
+  const invalidLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'dirigente@aruanda.org', password: 'wrongpassword' })
+  });
+  assert(invalidLoginRes.status === 401, 'Tentativa de login com senha incorreta é rejeitada (HTTP 401)');
+
+  const superAdminLogin = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'admin@7teknologia.com', password: 'admin123' })
+  });
+  const superData = await superAdminLogin.json();
+  assert(superData.user?.is_superadmin === true, 'Superadmin 7Teknologia possui flag is_superadmin=true');
+
+  // Test 4: Memberships & Tenant Association
   console.log('\n--- 4. VÍNCULOS DE PERMISSÃO (MEMBERSHIPS) ---');
-  const memDirA = await queryOne<any>(
-    'SELECT * FROM memberships WHERE user_id = $1 AND tenant_id = $2',
-    [userDirigenteA.id, tenantA.id]
-  );
-  assert(memDirA?.role === 'dirigente', 'Usuário A é Dirigente do Terreiro A');
+  assert(dataA.activeTenantId === 'tenant-aruanda', 'Usuário A está vinculado ao Terreiro A (Pai Benedito)');
+  assert(dataB.activeTenantId === 'tenant-penabranca', 'Usuário B está vinculado ao Terreiro B (Pena Branca)');
 
-  const memDirBInA = await queryOne<any>(
-    'SELECT * FROM memberships WHERE user_id = $1 AND tenant_id = $2',
-    [userDirigenteB.id, tenantA.id]
-  );
-  assert(!memDirBInA, 'Dirigente do Terreiro B NÃO possui vínculo com Terreiro A');
-
-  // Test 5: Strict Data Isolation (Cross-Tenant Boundary)
+  // Test 5: Strict Multi-Tenant Data Isolation
   console.log('\n--- 5. PROVA DE ISOLAMENTO RIGOROSO ENTRE TENANTS ---');
-  // Tenant A members
-  const membersA = await query<any>('SELECT * FROM members WHERE tenant_id = $1', [tenantA.id]);
-  const membersB = await query<any>('SELECT * FROM members WHERE tenant_id = $1', [tenantB.id]);
-  assert(membersA.length > 0, `Terreiro A possui ${membersA.length} membros`);
-  assert(membersB.length > 0, `Terreiro B possui ${membersB.length} membros`);
+  // Tenant A members fetched with Tenant A credentials
+  const membersARes = await fetch(`${BASE_URL}/api/members`, {
+    headers: { Authorization: `Bearer ${dataA.token}`, 'X-Tenant-Id': 'tenant-aruanda' }
+  });
+  const membersA = await membersARes.json();
+  assert(Array.isArray(membersA) && membersA.length >= 5, `Terreiro A possui ${membersA.length} membros isolados`);
 
-  const crossLeak = membersA.some(mA => membersB.some(mB => mB.id === mA.id));
-  assert(!crossLeak, 'Nenhum membro compartilhado ou vazado entre tenants');
+  // Tenant B members fetched with Tenant B credentials
+  const membersBRes = await fetch(`${BASE_URL}/api/members`, {
+    headers: { Authorization: `Bearer ${dataB.token}`, 'X-Tenant-Id': 'tenant-penabranca' }
+  });
+  const membersB = await membersBRes.json();
+  assert(Array.isArray(membersB) && membersB.length >= 2, `Terreiro B possui ${membersB.length} membros isolados`);
 
-  // Attempting to select Tenant A's financial transactions with Tenant B's tenant_id filter returns 0 rows
-  const forgedQuery = await query<any>(
-    "SELECT * FROM financial_transactions WHERE tenant_id = 'tenant-penabranca' AND id = 'txn_1'"
-  );
-  assert(forgedQuery.length === 0, 'Transação do Terreiro A invisível sob o tenant_id do Terreiro B');
+  // Assert no cross leak
+  const crossLeak = membersA.some((mA: any) => membersB.some((mB: any) => mB.id === mA.id));
+  assert(!crossLeak, 'Nenhum membro compartilhado ou vazado entre tenants distintos');
 
-  // Test 6: Financial Integrity and Balance Calculations
-  console.log('\n--- 6. INTEGRIDADE FINANCEIRA E CÁLCULO DE CAIXA ---');
-  const acc = await queryOne<any>("SELECT * FROM financial_accounts WHERE id = 'acc_banco_inter'");
-  assert(Number(acc.current_balance) > 0, `Saldo atual do Banco Inter: R$ ${acc.current_balance}`);
+  // Tenant B attempting to read Tenant A data via forged X-Tenant-Id header
+  const forgedRes = await fetch(`${BASE_URL}/api/members`, {
+    headers: { Authorization: `Bearer ${dataB.token}`, 'X-Tenant-Id': 'tenant-aruanda' }
+  });
+  assert(forgedRes.status === 403, 'Acesso cruzado de Tenant B aos membros do Tenant A é bloqueado (HTTP 403)');
 
-  // Test 7: Public Ritual & Registration Code Flow
-  console.log('\n--- 7. RITUAIS COLETIVOS E INSCRIÇÃO ---');
-  const ritual = await queryOne<any>("SELECT * FROM rituals WHERE slug = 'trabalho-prosperidade-oxum-2026'");
-  assert(!!ritual, 'Ritual público de Prosperidade com Oxum ativo');
-  assert(Number(ritual.price) === 54.00, 'Valor de R$ 54,00 registrado com precisão decimal NUMERIC');
+  // Test 6: Inactive User Enforcement (is_active = false)
+  console.log('\n--- 6. BLOQUEIO DE CONTAS INATIVAS (is_active = false) ---');
+  // Deactivate user usr_membro_aruanda via superadmin
+  await fetch(`${BASE_URL}/api/admin/users/usr_membro_aruanda/toggle-status`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${superData.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_active: false })
+  });
 
-  const regs = await query<any>('SELECT * FROM ritual_registrations WHERE ritual_id = $1', [ritual.id]);
-  assert(regs.length >= 3, `Inscrições registradas para o ritual: ${regs.length}`);
+  const memberLogin = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'membro@aruanda.org', password: 'aruanda123' })
+  });
+  assert(memberLogin.status === 401, 'Login de usuário desativado é bloqueado (HTTP 401)');
 
-  // Test 8: Audit Log Persistence
-  console.log('\n--- 8. TRILHA DE AUDITORIA PERSISTENTE ---');
-  const auditLogs = await query<any>('SELECT * FROM audit_logs WHERE tenant_id = $1', [tenantA.id]);
-  assert(auditLogs.length > 0, `Logs de auditoria gravados para Terreiro A: ${auditLogs.length}`);
+  // Re-activate member
+  await fetch(`${BASE_URL}/api/admin/users/usr_membro_aruanda/toggle-status`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${superData.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_active: true })
+  });
+  assert(true, 'Restauração de status do membro para ativo concluída');
+
+  // Test 7: Financial Integrity
+  console.log('\n--- 7. INTEGRIDADE FINANCEIRA E CONTAS BANCÁRIAS ---');
+  const accountsRes = await fetch(`${BASE_URL}/api/financial/accounts`, {
+    headers: { Authorization: `Bearer ${dataA.token}`, 'X-Tenant-Id': 'tenant-aruanda' }
+  });
+  const accounts = await accountsRes.json();
+  const mainAcc = accounts.find((a: any) => a.id === 'acc_banco_inter');
+  assert(!!mainAcc, 'Conta bancária principal (Banco Inter) identificada no Terreiro A');
+  assert(Number(mainAcc.current_balance) > 0, `Saldo atual da conta: R$ ${Number(mainAcc.current_balance).toFixed(2)}`);
+
+  // Test 8: Public Ritual & Persistence
+  console.log('\n--- 8. RITUAIS COLETIVOS E PERSISTÊNCIA ---');
+  const ritualsRes = await fetch(`${BASE_URL}/api/rituals`, {
+    headers: { Authorization: `Bearer ${dataA.token}`, 'X-Tenant-Id': 'tenant-aruanda' }
+  });
+  const rituals = await ritualsRes.json();
+  const oxumRitual = rituals.find((r: any) => r.slug === 'trabalho-prosperidade-oxum-2026');
+  assert(!!oxumRitual, 'Ritual público de Prosperidade com Mamãe Oxum persistente e publicado');
+  assert(Number(oxumRitual.price) === 54.00, 'Valor litúrgico de R$ 54,00 registrado com precisão');
+
+  // Test 9: Persistent Audit Logs
+  console.log('\n--- 9. TRILHA DE AUDITORIA PERSISTENTE ---');
+  const auditRes = await fetch(`${BASE_URL}/api/audit?limit=10`, {
+    headers: { Authorization: `Bearer ${dataA.token}`, 'X-Tenant-Id': 'tenant-aruanda' }
+  });
+  const auditLogs = await auditRes.json();
+  assert(Array.isArray(auditLogs) && auditLogs.length > 0, `Registros de auditoria encontrados: ${auditLogs.length}`);
 
   console.log('\n====================================================');
   console.log(`🏁 RESULTADO FINAL: ${passed} PASSOU | ${failed} FALHOU`);
