@@ -1,0 +1,1222 @@
+# PROMPT MESTRE DEFINITIVO
+# 7TEKNOLOGIA GESTÃO DE TERREIROS
+## SaaS MULTI-TENANT COMPLETO — GESTÃO, CRM, FINANCEIRO, RITUAIS E AUTOMAÇÃO
+
+Assuma simultaneamente os papéis de arquiteto de software sênior, engenheiro full-stack, especialista em PostgreSQL, segurança de aplicações SaaS, UX/UI, gestão financeira, CRM, automação de processos e testes de software.
+
+Sua missão é CONSTRUIR uma aplicação web SaaS real, completa, funcional, segura, responsiva e comercializável chamada provisoriamente **7Teknologia Gestão de Terreiros**, produto oficial da 7Teknologia.
+
+Não entregue apenas um planejamento, uma demonstração visual, um protótipo estático ou telas preenchidas com informações fictícias sem funcionalidade.
+
+Implemente o código real permitido pelo ambiente, banco de dados, migrations, regras de negócio, APIs, autenticação, autorização, integrações configuráveis, testes e documentação.
+
+Se o projeto já existir, inspecione-o antes de alterar qualquer coisa. Preserve funcionalidades válidas, reutilize componentes e implemente as novas funcionalidades incrementalmente. Não recrie o projeto do zero sem necessidade.
+
+---
+
+# 1. VISÃO DO PRODUTO
+
+Construir uma plataforma de gestão para terreiros de Umbanda, Candomblé e outras tradições de matriz africana, atendendo casas de todos os portes.
+
+O sistema deverá permitir que cada terreiro gerencie:
+
+- sua estrutura organizacional;
+- dirigentes, responsáveis e membros;
+- calendário e atividades;
+- giras, cerimônias, obrigações e eventos;
+- rituais coletivos a distância;
+- inscrições, pagamentos e confirmações;
+- finanças, contas e prestação de contas;
+- CRM de visitantes, interessados, participantes e relacionamentos;
+- comunicação e notificações;
+- equipes, tarefas e responsabilidades;
+- estoque, compras e patrimônio;
+- documentos e arquivos;
+- relatórios e indicadores;
+- assinaturas e utilização do próprio SaaS.
+
+O sistema não deve impor doutrina, hierarquia, cargos, fundamentos ou procedimentos ritualísticos universais. Cada terreiro deverá configurar sua estrutura e seus processos.
+
+A plataforma deve facilitar a administração da casa, respeitar a autonomia religiosa e proteger as informações da comunidade.
+
+# 2. PRINCÍPIOS INEGOCIÁVEIS
+
+1. PostgreSQL será o banco de dados principal.
+2. React e TypeScript serão utilizados na interface.
+3. Node.js e TypeScript serão utilizados no backend, se compatíveis com o ambiente.
+4. O sistema será multi-tenant, com isolamento obrigatório dos dados de cada terreiro.
+5. Toda funcionalidade crítica deverá possuir persistência real no banco.
+6. Toda operação protegida deverá ser autorizada no servidor.
+7. O sistema terá migrations versionadas e reproduzíveis.
+8. O frontend nunca receberá credenciais administrativas ou segredos privados.
+9. Os formulários terão validação no frontend e no backend.
+10. Não utilizar localStorage como banco de dados principal.
+11. Não simular autenticação, pagamentos, integrações ou persistência como se fossem reais.
+12. Recursos externos deverão ter configuração explícita e estados claros de disponibilidade.
+13. O sistema deverá funcionar bem em celulares, tablets e computadores.
+14. Não excluir dados financeiros ou históricos críticos silenciosamente.
+15. A segurança, a privacidade, a acessibilidade e a integridade dos dados serão requisitos desde a primeira etapa.
+16. Não armazenar mais dados pessoais do que o necessário.
+17. Não presumir que uma convicção religiosa autoriza campanhas, segmentação comercial ou divulgação de informações pessoais.
+18. Não afirmar que o produto está pronto para produção antes de executar e documentar os testes correspondentes.
+
+# 3. ARQUITETURA TÉCNICA
+
+Utilize um monólito modular, com separação lógica entre:
+
+- frontend;
+- API;
+- autenticação;
+- autorização;
+- serviços de negócio;
+- repositórios;
+- persistência;
+- armazenamento;
+- auditoria;
+- notificações;
+- integrações;
+- faturamento;
+- relatórios;
+- testes.
+
+Stack preferencial:
+
+Frontend:
+- React;
+- TypeScript;
+- Tailwind CSS ou sistema equivalente disponível;
+- biblioteca consistente de componentes acessíveis;
+- biblioteca de gráficos adequada ao React;
+- formulários com validação por esquema.
+
+Backend:
+- Node.js;
+- TypeScript;
+- API REST versionada;
+- validação de entradas;
+- autenticação e autorização;
+- serviços transacionais;
+- tratamento seguro de erros.
+
+Dados:
+- PostgreSQL;
+- migrations SQL versionadas;
+- chaves estrangeiras;
+- índices;
+- constraints;
+- transações;
+- Row-Level Security (RLS);
+- backups e testes de restauração.
+
+Infraestrutura preferencial:
+- Google AI Studio como ambiente de desenvolvimento assistido;
+- Supabase para PostgreSQL, autenticação e armazenamento privado, caso disponível e adequado;
+- serviço de e-mail transacional configurável;
+- WhatsApp Business Platform ou provedor oficial compatível;
+- gateways de pagamento configuráveis por adaptadores.
+
+Antes de escolher bibliotecas ou serviços, verificar a compatibilidade com o ambiente real de execução.
+
+Não introduzir microserviços desnecessários no MVP. Manter módulos desacoplados dentro da aplicação.
+
+# 4. MULTI-TENANCY E ISOLAMENTO
+
+Cada terreiro será um tenant independente.
+
+Entidades globais, como catálogo de planos, poderão ser compartilhadas quando apropriado. Todos os registros pertencentes a uma casa deverão estar vinculados ao tenant correspondente.
+
+Implementar:
+
+- tenants;
+- tenant_settings;
+- tenant_branding;
+- users ou referências ao provedor de autenticação;
+- user_profiles;
+- memberships;
+- roles;
+- permissions;
+- role_permissions;
+- subscriptions;
+- audit_logs;
+- security_events.
+
+Um usuário poderá pertencer a vários terreiros e possuir papéis diferentes em cada um.
+
+O tenant ativo será validado no servidor por meio da sessão autenticada e dos vínculos do usuário. Não confiar em tenant_id fornecido livremente pelo navegador.
+
+Implementar políticas RLS e privilégios mínimos.
+
+Utilizar chaves estrangeiras compostas e constraints para impedir relacionamentos entre registros de tenants diferentes.
+
+Testar explicitamente acessos autorizados e negados para SELECT, INSERT, UPDATE e DELETE.
+
+Revisar também views, funções, rotinas administrativas, exportações, uploads e downloads.
+
+O administrador do SaaS não terá acesso automático irrestrito a dados pessoais, financeiros ou religiosos dos clientes.
+
+# 5. AUTENTICAÇÃO E PERMISSÕES
+
+Implementar:
+
+- cadastro e convite de usuários;
+- login e logout;
+- recuperação de senha;
+- gestão de sessões;
+- troca segura de terreiro ativo;
+- gerenciamento de papéis;
+- permissões granulares;
+- revogação de acesso;
+- histórico de operações críticas.
+
+Papéis iniciais:
+
+1. Superadministrador do SaaS.
+2. Dirigente do terreiro.
+3. Administrador da casa.
+4. Administrador financeiro.
+5. Responsável de área.
+6. Responsável por eventos e rituais.
+7. Responsável pelo CRM.
+8. Membro.
+9. Visitante ou participante externo.
+
+Os papéis devem ser configuráveis por tenant.
+
+Criar permissões por módulo e ação, incluindo visualizar, criar, editar, aprovar, cancelar, exportar e administrar.
+
+Não conceder automaticamente acesso financeiro a responsáveis por eventos ou acesso a documentos confidenciais a todos os dirigentes sem considerar a política definida pela casa.
+
+# 6. DASHBOARD PRINCIPAL
+
+Criar um dashboard visualmente sofisticado, profissional, claro e útil para a tomada de decisões.
+
+O dashboard deve adaptar seus indicadores às permissões e ao perfil do usuário.
+
+## 6.1. Direção visual
+
+Identidade:
+- verde-floresta profundo;
+- verde intermediário;
+- dourado fosco como detalhe;
+- fundos neutros;
+- tipografia elegante e legível;
+- ícones consistentes;
+- cartões com hierarquia visual;
+- bordas discretas;
+- espaçamento generoso;
+- gráficos claros;
+- animações sutis e não excessivas.
+
+Criar uma interface original, não uma cópia de outro produto.
+
+Oferecer tema claro e escuro.
+
+Permitir que cada terreiro configure nome, logotipo e cores básicas sem alterar a identidade central da 7Teknologia.
+
+Não usar símbolos religiosos genéricos de maneira obrigatória ou decorativa.
+
+## 6.2. Navegação
+
+Criar menu lateral responsivo com grupos:
+
+- Visão geral;
+- Pessoas e CRM;
+- Calendário e atividades;
+- Rituais coletivos;
+- Financeiro;
+- Estoque e patrimônio;
+- Equipes e tarefas;
+- Documentos;
+- Comunicação;
+- Relatórios;
+- Configurações.
+
+No mobile, utilizar navegação compacta e menus adaptados.
+
+Exibir apenas módulos e ações autorizados para o usuário.
+
+## 6.3. Indicadores do dashboard
+
+Cards e gráficos devem ser calculados com dados reais do PostgreSQL.
+
+Exibir, conforme a permissão:
+
+- membros ativos;
+- novos membros no período;
+- visitantes e contatos recentes;
+- inscrições em rituais;
+- pagamentos pendentes;
+- receitas recebidas;
+- despesas pagas;
+- saldo do período;
+- contas a pagar;
+- contas a receber;
+- próximos eventos;
+- tarefas pendentes;
+- itens abaixo do estoque mínimo;
+- notificações importantes.
+
+Criar filtros de período e comparação entre períodos.
+
+Gráficos:
+- receitas versus despesas;
+- fluxo de caixa;
+- distribuição das despesas por categoria;
+- inscrições e pagamentos por ritual;
+- evolução de novos contatos;
+- conversão do funil do CRM;
+- tarefas por status.
+
+Os indicadores financeiros deverão respeitar competência, vencimento, pagamento e estorno, conforme o tipo de relatório.
+
+Não apresentar contas a receber como dinheiro já recebido.
+
+Permitir abrir a listagem correspondente ao clicar em um indicador.
+
+Implementar carregamento, estado vazio, erro e atualização dos dados.
+
+Não utilizar números fixos ou gráficos fictícios em produção.
+
+# 7. CADASTRO E GESTÃO DE MEMBROS
+
+Criar cadastro de pessoas separado das contas de usuário.
+
+Implementar:
+- nome;
+- contatos necessários;
+- status do vínculo;
+- data de ingresso, quando aplicável;
+- áreas e responsabilidades;
+- histórico administrativo;
+- consentimentos e preferências de comunicação, quando aplicáveis;
+- associação opcional a uma conta de acesso;
+- busca, filtros e exportação autorizada.
+
+Permitir cadastro de pessoa sem conceder login.
+
+Não exigir informações ritualísticas ou sensíveis para cadastro administrativo básico.
+
+Permitir configurar campos adicionais por terreiro, com regras de visibilidade e coleta mínima.
+
+# 8. CRM ESPECIALIZADO PARA TERREIROS
+
+Construir um CRM funcional, integrado a eventos, inscrições, comunicação e financeiro.
+
+O CRM deverá ajudar a organizar relacionamentos legítimos com visitantes, interessados, participantes e membros, sem transformar a comunidade em uma base de dados comercial indiscriminada.
+
+## 8.1. Entidades do CRM
+
+Criar:
+
+- crm_contacts;
+- crm_sources;
+- crm_pipelines;
+- crm_pipeline_stages;
+- crm_opportunities;
+- crm_activities;
+- crm_tasks;
+- crm_notes;
+- crm_tags;
+- crm_contact_tags;
+- crm_campaigns;
+- crm_campaign_recipients;
+- crm_consent_records;
+- crm_contact_preferences;
+- crm_interaction_history.
+
+Todas as entidades pertencentes à casa deverão ser isoladas por tenant.
+
+Evitar duplicar a mesma pessoa no CRM e no cadastro de membros. Permitir vincular registros e consolidar contatos com validações e histórico.
+
+## 8.2. Tipos de relacionamento
+
+Permitir classificar contatos por relações operacionais, por exemplo:
+
+- visitante;
+- pessoa interessada em conhecer a casa;
+- inscrito em evento;
+- participante de ritual coletivo;
+- membro em processo de ingresso;
+- membro ativo;
+- ex-membro;
+- fornecedor;
+- parceiro;
+- contato administrativo.
+
+Não presumir crença, religião, intenção de conversão ou situação espiritual.
+
+As categorias devem ser configuráveis e utilizar somente informações necessárias à finalidade escolhida.
+
+## 8.3. Pipeline visual
+
+Criar um pipeline em Kanban configurável.
+
+Exemplo inicial:
+
+1. Novo contato.
+2. Primeiro contato realizado.
+3. Solicitou informações.
+4. Inscrito em evento.
+5. Participação concluída.
+6. Acompanhamento autorizado.
+7. Vinculado à casa.
+8. Encerrado.
+
+O usuário poderá criar, editar e ordenar etapas.
+
+Cada cartão exibirá apenas informações autorizadas e necessárias.
+
+Permitir mover cartões entre etapas e registrar a alteração no histórico.
+
+A mudança de etapa não deverá disparar mensagens externas sem regras explícitas.
+
+## 8.4. Perfil 360 graus do contato
+
+Criar uma ficha de relacionamento com:
+
+- identificação;
+- canais de contato;
+- origem do contato;
+- eventos e inscrições relacionados;
+- interações registradas;
+- tarefas pendentes;
+- preferências de comunicação;
+- consentimentos ou outras bases legais aplicáveis;
+- histórico de mensagens enviadas;
+- notas administrativas com acesso restrito;
+- status do relacionamento.
+
+Não apresentar conteúdo ritualístico confidencial nessa ficha por padrão.
+
+Não registrar dados sensíveis desnecessários nas notas livres.
+
+## 8.5. Atividades e acompanhamento
+
+Permitir registrar:
+
+- ligação;
+- conversa;
+- atendimento;
+- visita;
+- e-mail;
+- mensagem;
+- participação em evento;
+- tarefa de acompanhamento.
+
+Criar tarefas com responsável, prazo, prioridade, status e lembretes.
+
+Exibir atividades vencidas e próximas ações no dashboard.
+
+## 8.6. Origem e métricas
+
+Permitir registrar origem do contato:
+
+- indicação;
+- site;
+- redes sociais;
+- evento;
+- WhatsApp;
+- formulário;
+- cadastro manual;
+- outra origem configurável.
+
+Exibir métricas agregadas de contatos por origem, inscrições, comparecimento e relacionamento ao longo do tempo.
+
+Não tratar a participação religiosa como uma métrica de pressão ou obrigação pessoal.
+
+## 8.7. Comunicação e campanhas
+
+Permitir campanhas administrativas e informativas para contatos autorizados.
+
+Criar segmentos baseados em critérios operacionais e preferências explícitas, como:
+
+- inscritos em determinado evento;
+- participantes que aceitaram receber atualizações;
+- pessoas que solicitaram informações sobre horários;
+- membros com avisos administrativos relevantes.
+
+Não criar públicos publicitários a partir de convicções religiosas, informações ritualísticas confidenciais ou dados sensíveis sem uma base legal adequada e análise específica.
+
+Implementar:
+- pré-visualização;
+- confirmação antes do envio;
+- registro de destinatários;
+- limite de envios;
+- tratamento de erros;
+- cancelamento de campanhas pendentes;
+- descadastro;
+- histórico;
+- prevenção de duplicidades.
+
+Não implementar disparos em massa por meios não oficiais.
+
+# 9. CALENDÁRIO, EVENTOS E TAREFAS
+
+Implementar:
+- calendário mensal, semanal e lista;
+- eventos;
+- reuniões;
+- giras;
+- festas;
+- mutirões;
+- ensaios;
+- atividades internas;
+- responsáveis;
+- inscrições;
+- participantes;
+- confirmação de presença;
+- tarefas;
+- prazos;
+- notificações;
+- histórico de alterações.
+
+Permitir que cada casa configure seus tipos de evento e campos.
+
+Controlar fusos horários.
+
+# 10. MÓDULO DE RITUAIS COLETIVOS A DISTÂNCIA
+
+Construir módulo completo para criar, divulgar e administrar rituais coletivos realizados a distância.
+
+## 10.1. Cadastro
+
+Cada ritual terá:
+
+- título;
+- slug único;
+- descrição;
+- imagem opcional;
+- terreiro responsável;
+- data e horário;
+- fuso horário;
+- orientações;
+- responsável;
+- valor;
+- modalidade gratuita ou paga;
+- limite de vagas;
+- prazo de inscrição;
+- canais de confirmação;
+- métodos de pagamento;
+- política de cancelamento;
+- status de publicação.
+
+## 10.2. Página pública
+
+Gerar página com endereço semelhante a:
+
+/r/{slug}
+
+Exibir as informações divulgadas pelo dirigente, o valor, as orientações, o prazo e o botão “Inscrever-se”.
+
+A página será responsiva e não exigirá conta para iniciar a inscrição.
+
+## 10.3. Inscrições
+
+Criar:
+- formulário;
+- identificação do participante;
+- e-mail e telefone necessários;
+- termos e avisos aplicáveis;
+- referência única da inscrição;
+- status;
+- histórico;
+- associação opcional a uma conta;
+- prevenção de duplicidades;
+- controle de vagas concorrentes.
+
+## 10.4. Gateways por API
+
+Criar área para cadastro de múltiplos provedores de pagamento.
+
+Utilizar adaptadores independentes para gateways como Mercado Pago, Asaas ou outros provedores compatíveis.
+
+Implementar:
+- criação de cobrança;
+- identificação da transação;
+- checkout;
+- webhooks autenticados;
+- consulta da transação quando necessária;
+- idempotência;
+- atualização de status;
+- taxas e valores líquidos quando informados;
+- cancelamento e reembolso quando suportados.
+
+Não confirmar pagamentos somente por retorno do navegador.
+
+## 10.5. Pagamento manual por WhatsApp
+
+Permitir configurar número de contato, instruções, chave PIX ou outras informações de pagamento e regras para envio de comprovante.
+
+Abrir conversa de WhatsApp com mensagem pré-preenchida e referência não sensível da inscrição.
+
+Permitir anexar comprovante ao painel, de forma privada.
+
+A equipe deverá poder:
+- visualizar o comprovante;
+- conferir o pagamento;
+- aprovar;
+- rejeitar;
+- solicitar novo comprovante;
+- registrar justificativa;
+- identificar quem realizou a análise.
+
+Somente a aprovação por usuário autorizado deverá liberar uma inscrição paga manualmente.
+
+## 10.6. Confirmação
+
+Permitir confirmação por e-mail, WhatsApp ou ambos.
+
+Criar fila de notificações, modelos editáveis, tentativas controladas, histórico de entrega e reenvio.
+
+Usar provedores reais quando configurados.
+
+Não simular envios reais.
+
+## 10.7. Financeiro dos rituais
+
+Associar as inscrições aos pagamentos e às transações financeiras correspondentes.
+
+Impedir duplicidade de receitas.
+
+Separar valores previstos, pagamentos pendentes, recebimentos confirmados, taxas e reembolsos.
+
+Criar relatórios por ritual, período, método de pagamento e status.
+
+Preservar a trilha de auditoria.
+
+# 11. MÓDULO FINANCEIRO COMPLETO
+
+O financeiro deve ser um dos módulos centrais do sistema.
+
+Criar um livro financeiro consistente, integrado aos rituais, contribuições, despesas, estoque e relatórios.
+
+## 11.1. Cadastros
+
+Criar:
+- contas financeiras;
+- categorias;
+- subcategorias;
+- centros de custo;
+- métodos de pagamento;
+- fornecedores;
+- pagadores;
+- contas a pagar;
+- contas a receber;
+- documentos financeiros;
+- períodos de fechamento.
+
+Permitir configurar as categorias conforme a realidade de cada casa.
+
+## 11.2. Receitas
+
+Registrar:
+- contribuições;
+- doações;
+- inscrições em eventos;
+- inscrições em rituais;
+- campanhas de arrecadação;
+- vendas de produtos, quando aplicável;
+- outras receitas configuráveis.
+
+Campos:
+- descrição;
+- categoria;
+- valor;
+- vencimento;
+- data de recebimento;
+- conta de destino;
+- método de pagamento;
+- pagador opcional;
+- comprovante;
+- status;
+- origem;
+- observações autorizadas.
+
+Não registrar automaticamente uma receita como recebida antes da confirmação efetiva.
+
+## 11.3. Despesas
+
+Registrar:
+- contas de consumo;
+- aluguel;
+- manutenção;
+- materiais;
+- compras;
+- alimentação;
+- eventos;
+- serviços;
+- fornecedores;
+- outras categorias configuráveis.
+
+Campos:
+- descrição;
+- categoria;
+- fornecedor;
+- valor;
+- data de competência;
+- vencimento;
+- data de pagamento;
+- conta de origem;
+- comprovante;
+- status;
+- recorrência opcional;
+- centro de custo;
+- responsável.
+
+## 11.4. Contas a pagar e receber
+
+Implementar:
+- pendente;
+- parcialmente pago;
+- pago;
+- vencido;
+- cancelado;
+- renegociado, quando aplicável.
+
+Permitir pagamentos parciais, baixas, vencimentos e alertas.
+
+Não duplicar despesas ou receitas ao registrar pagamentos parciais.
+
+## 11.5. Fluxo de caixa
+
+Criar:
+- saldo inicial;
+- entradas;
+- saídas;
+- saldo final;
+- projeção de recebimentos e pagamentos;
+- filtros por período;
+- detalhamento por conta;
+- comparação entre períodos.
+
+Distinguir fluxo de caixa realizado de projeções futuras.
+
+## 11.6. Transferências e conciliação
+
+Implementar transferências entre contas sem registrar receita ou despesa fictícia.
+
+Permitir conciliação manual e preparar importação de extratos quando houver suporte.
+
+Identificar divergências sem alterar automaticamente lançamentos confirmados.
+
+## 11.7. Recorrências
+
+Permitir configurar contas recorrentes e gerar ocorrências futuras de forma idempotente.
+
+Não executar pagamentos bancários reais sem integração específica e autorização adequada.
+
+## 11.8. Fechamento e auditoria
+
+Implementar fechamento de período, trilha de alterações e correções por estorno.
+
+Lançamentos confirmados não poderão ser apagados silenciosamente.
+
+Criar relatórios:
+- receitas e despesas;
+- fluxo de caixa;
+- contas vencidas;
+- receitas por categoria;
+- despesas por categoria;
+- resultado por período;
+- movimentação por conta;
+- desempenho financeiro por evento;
+- desempenho financeiro por ritual;
+- exportação CSV e PDF.
+
+Utilizar NUMERIC para valores monetários e transações de banco para operações que precisam ser atômicas.
+
+A nomenclatura dos relatórios deverá deixar claro se apresenta movimentação de caixa ou visão por competência.
+
+# 12. ESTOQUE, COMPRAS E PATRIMÔNIO
+
+Implementar:
+- cadastro de itens;
+- categorias;
+- unidades de medida;
+- fornecedores;
+- entradas;
+- saídas;
+- ajustes;
+- estoque mínimo;
+- inventário;
+- compras;
+- patrimônio;
+- histórico;
+- custos de aquisição quando disponíveis.
+
+Integrar despesas e compras ao financeiro sem gerar lançamentos duplicados.
+
+Não realizar exclusões que eliminem o histórico de movimentação.
+
+# 13. DOCUMENTOS
+
+Implementar:
+- upload;
+- categorias;
+- metadados;
+- permissões;
+- versões;
+- validade;
+- download;
+- retenção;
+- exportação autorizada.
+
+Utilizar armazenamento privado, validação de arquivos e links temporários.
+
+Não expor documentos pessoais ou comprovantes por URLs públicas permanentes.
+
+# 14. OBRIGAÇÕES E REGISTROS CONFIGURÁVEIS
+
+Permitir que cada casa crie seus próprios tipos de registro, campos, status, responsáveis e regras de acesso.
+
+O sistema não deverá definir fundamentos religiosos nem exigir o registro de informações ritualísticas confidenciais.
+
+Permitir acesso restrito a determinados responsáveis.
+
+Não utilizar esses registros para segmentação comercial automática.
+
+# 15. COMUNICAÇÃO E NOTIFICAÇÕES
+
+Implementar:
+- avisos internos;
+- notificações;
+- lembretes;
+- confirmação de eventos;
+- mensagens administrativas;
+- e-mail;
+- integração configurável com WhatsApp Business;
+- histórico de entrega;
+- preferências;
+- descadastro quando aplicável.
+
+Criar filas de envio e tratamento de falhas.
+
+Não bloquear a aplicação caso um provedor de mensagens fique indisponível.
+
+Respeitar as permissões e preferências de cada destinatário.
+
+# 16. RELATÓRIOS E EXPORTAÇÕES
+
+Criar área de relatórios com filtros por:
+- período;
+- categoria;
+- evento;
+- ritual;
+- status;
+- responsável;
+- origem do contato;
+- conta financeira.
+
+Permitir exportações autorizadas em CSV e PDF quando aplicável.
+
+Garantir que filtros e exportações respeitem o tenant e as permissões do usuário.
+
+Não incluir dados pessoais desnecessários.
+
+# 17. ADMINISTRAÇÃO DO SAAS
+
+Criar painel exclusivo da 7Teknologia com:
+
+- tenants;
+- status das contas;
+- planos;
+- assinaturas;
+- limites;
+- utilização;
+- cobrança;
+- suporte;
+- cancelamentos;
+- solicitações de exportação;
+- status operacional;
+- auditoria administrativa.
+
+Planos comerciais iniciais configuráveis:
+
+Essencial: R$ 39,90/mês, até 30 membros.
+
+Gestão: R$ 79,90/mês, até 100 membros.
+
+Completo: R$ 129,90/mês, até 300 membros.
+
+Personalizado: sob consulta.
+
+Esses valores deverão ser configuráveis no banco ou no painel administrativo, não espalhados pelo código.
+
+Todos os planos devem possuir o mesmo nível fundamental de isolamento e segurança.
+
+Criar controle de limites no backend.
+
+Preparar integração de assinaturas com gateway, mas manter modo manual claramente identificado enquanto a integração não estiver configurada.
+
+Não excluir dados por cancelamento de assinatura.
+
+# 18. LGPD E PRIVACIDADE
+
+Aplicar minimização de dados, controle de acesso, retenção definida e transparência.
+
+Implementar:
+- aviso de privacidade;
+- preferências de comunicação;
+- registro de consentimentos quando aplicável;
+- exportação;
+- correção;
+- solicitação de exclusão quando cabível;
+- controle de retenção;
+- registro de solicitações;
+- gestão de incidentes.
+
+Tratar dados que revelem convicção religiosa como dados potencialmente sensíveis.
+
+Não assumir que consentimento é a única base legal possível.
+
+Permitir revisão e atendimento por responsáveis autorizados.
+
+Não armazenar senhas em texto puro, credenciais bancárias completas ou tokens em logs.
+
+# 19. AUDITORIA E OBSERVABILIDADE
+
+Registrar eventos críticos:
+- autenticação relevante;
+- alterações de permissões;
+- inclusão e exclusão de membros;
+- aprovações financeiras;
+- alterações de lançamentos;
+- pagamentos;
+- cancelamentos;
+- exportações;
+- alterações de configurações;
+- acessos administrativos excepcionais.
+
+Cada registro deverá incluir ator, tenant, ação, entidade afetada, data e metadados mínimos necessários.
+
+Proteger a auditoria contra alteração por usuários comuns.
+
+Não registrar conteúdo confidencial, senhas ou tokens.
+
+Criar logs operacionais sem exposição desnecessária de dados pessoais.
+
+# 20. MODELO DE DADOS
+
+Criar migrations versionadas para, no mínimo:
+
+SaaS:
+- tenants;
+- tenant_settings;
+- tenant_branding;
+- plans;
+- subscriptions;
+- billing_customers;
+- billing_events;
+- usage_counters.
+
+Acesso:
+- user_profiles;
+- memberships;
+- roles;
+- permissions;
+- role_permissions;
+- audit_logs;
+- security_events.
+
+Pessoas:
+- members;
+- member_contacts;
+- member_status_history;
+- organizational_units;
+- member_assignments.
+
+CRM:
+- crm_contacts;
+- crm_sources;
+- crm_pipelines;
+- crm_pipeline_stages;
+- crm_opportunities;
+- crm_activities;
+- crm_tasks;
+- crm_notes;
+- crm_tags;
+- crm_contact_tags;
+- crm_campaigns;
+- crm_campaign_recipients;
+- crm_consent_records;
+- crm_contact_preferences;
+- crm_interaction_history.
+
+Eventos:
+- events;
+- event_types;
+- event_participants;
+- attendance_records;
+- tasks;
+- task_assignments;
+- task_comments.
+
+Rituais:
+- rituals;
+- ritual_publication_settings;
+- ritual_registration_settings;
+- ritual_registrations;
+- ritual_registration_fields;
+- ritual_registration_answers;
+- ritual_payment_methods;
+- payment_gateways;
+- payment_gateway_credentials_refs;
+- payment_transactions;
+- payment_webhook_events;
+- manual_payment_submissions;
+- payment_reviews;
+- ritual_waitlist;
+- notification_templates;
+- notification_jobs;
+- notification_delivery_events;
+- ritual_cancellation_records;
+- refund_records.
+
+Financeiro:
+- financial_accounts;
+- financial_categories;
+- cost_centers;
+- financial_transactions;
+- financial_installments;
+- financial_attachments;
+- financial_transfers;
+- financial_reconciliations;
+- financial_period_closures.
+
+Estoque:
+- inventory_items;
+- inventory_movements;
+- suppliers;
+- purchase_records;
+- assets.
+
+Documentos e comunicação:
+- documents;
+- document_permissions;
+- document_versions;
+- announcements;
+- announcement_recipients;
+- notifications;
+- notification_preferences.
+
+Privacidade:
+- data_requests;
+- retention_policies;
+- consent_records.
+
+Adapte o esquema para evitar duplicação e garantir integridade. Documente a finalidade de cada tabela e o relacionamento entre os módulos.
+
+Utilize UUIDs, chaves estrangeiras, índices, constraints e timestamps adequados.
+
+# 21. DESIGN SYSTEM E EXPERIÊNCIA DE USO
+
+Criar componentes reutilizáveis para:
+- botões;
+- formulários;
+- tabelas;
+- filtros;
+- modais;
+- painéis;
+- gráficos;
+- notificações;
+- badges de status;
+- cartões;
+- menus;
+- paginação;
+- estados vazios;
+- confirmação de ações.
+
+Implementar:
+- navegação consistente;
+- busca;
+- filtros;
+- ordenação;
+- paginação;
+- formulários acessíveis;
+- mensagens de erro;
+- estados de carregamento;
+- confirmação para operações críticas;
+- responsividade;
+- navegação por teclado;
+- contraste adequado.
+
+Não usar gráficos meramente decorativos.
+
+Os dados e valores devem ser legíveis em dispositivos móveis.
+
+# 22. TESTES OBRIGATÓRIOS
+
+Criar testes unitários, de integração e ponta a ponta.
+
+Cobrir:
+- autenticação;
+- recuperação de acesso;
+- permissões;
+- isolamento entre tenants;
+- cadastro e atualização de membros;
+- CRM e pipeline;
+- tarefas;
+- eventos;
+- inscrições;
+- pagamentos automáticos;
+- pagamentos manuais;
+- webhooks;
+- idempotência;
+- confirmações;
+- finanças;
+- transferências;
+- conciliação;
+- estoque;
+- documentos;
+- exportações;
+- assinaturas;
+- limites dos planos;
+- privacidade;
+- auditoria;
+- responsividade dos fluxos principais.
+
+Criar pelo menos dois tenants de teste.
+
+Demonstrar que um usuário de um tenant não consegue ler, alterar, excluir ou exportar dados de outro tenant.
+
+Testar SELECT, INSERT, UPDATE e DELETE, incluindo requisições forjadas e alteração de IDs.
+
+Testar valores financeiros, concorrência, duplicidade de webhooks e consistência de transações.
+
+Executar os testes realmente, corrigir falhas e repetir a execução.
+
+Não afirmar que um teste foi aprovado se não tiver sido executado.
+
+# 23. PLANO DE IMPLEMENTAÇÃO
+
+O sistema completo deverá ser projetado desde o início, mas implementado por etapas verificáveis.
+
+ETAPA A — Fundação:
+- estrutura do projeto;
+- autenticação;
+- PostgreSQL;
+- migrations;
+- multi-tenancy;
+- RLS;
+- papéis e permissões;
+- auditoria;
+- testes de isolamento.
+
+ETAPA B — Núcleo administrativo:
+- dashboard;
+- membros;
+- estrutura organizacional;
+- calendário;
+- tarefas;
+- documentos básicos.
+
+ETAPA C — Financeiro:
+- contas;
+- categorias;
+- receitas;
+- despesas;
+- contas a pagar e receber;
+- fluxo de caixa;
+- relatórios;
+- transferências;
+- fechamento;
+- auditoria.
+
+ETAPA D — CRM:
+- contatos;
+- pipeline;
+- histórico;
+- atividades;
+- tarefas;
+- preferências;
+- comunicação autorizada;
+- indicadores.
+
+ETAPA E — Rituais coletivos:
+- página pública;
+- inscrição;
+- pagamento manual;
+- conferência;
+- confirmação;
+- gateway;
+- webhooks;
+- financeiro integrado;
+- notificações.
+
+ETAPA F — Operação ampliada:
+- estoque;
+- patrimônio;
+- obrigações configuráveis;
+- relatórios ampliados;
+- automações.
+
+ETAPA G — SaaS comercial:
+- planos;
+- assinaturas;
+- limites;
+- painel da 7Teknologia;
+- cancelamento;
+- exportação.
+
+ETAPA H — Preparação para produção:
+- revisão de segurança;
+- testes de regressão;
+- backups;
+- restauração;
+- observabilidade;
+- documentação;
+- configurações de produção.
+
+Ao concluir cada etapa, verificar a compatibilidade com todas as anteriores.
+
+Não gerar uma implementação monolítica desorganizada nem tentar encaixar todo o código em um único arquivo.
+
+Se os recursos do ambiente forem insuficientes para uma etapa inteira, concluir uma unidade funcional coerente, documentar o estado e prosseguir incrementalmente.
+
+# 24. CRITÉRIOS DE ACEITAÇÃO
+
+O produto não será considerado funcional apenas porque as telas renderizam.
+
+Verificar:
+- persistência real no PostgreSQL;
+- autenticação real;
+- autorização no backend;
+- isolamento multi-tenant;
+- RLS;
+- migrations reproduzíveis;
+- funcionalidades conectadas à API;
+- dashboard alimentado por dados reais;
+- CRM com operações persistidas;
+- financeiro consistente;
+- inscrições e pagamentos integrados;
+- confirmações rastreáveis;
+- arquivos privados;
+- testes executados;
+- ausência de segredos no frontend;
+- documentação de implantação;
+- tratamento seguro de falhas.
+
+Identificar explicitamente qualquer funcionalidade ainda pendente ou que dependa de credenciais externas.
+
+# 25. ENTREGA FINAL
+
+Ao concluir cada etapa, apresentar:
+1. funcionalidades realmente implementadas;
+2. estrutura de arquivos;
+3. migrations;
+4. integrações configuradas;
+5. testes executados e resultados;
+6. limitações;
+7. variáveis de ambiente necessárias, sem seus valores secretos;
+8. configurações externas pendentes;
+9. próximos passos objetivos.
+
+Ao finalizar o projeto, entregar documentação de instalação, desenvolvimento, testes, implantação e operação.
+
+Não substituir o código real por uma descrição do que seria feito.
+
+COMECE AGORA inspecionando o ambiente, a estrutura do projeto e os recursos disponíveis. Implemente a Etapa A, execute os testes de segurança e persistência e só então avance para as etapas seguintes.
+
+Prioridade máxima: segurança, integridade financeira, isolamento dos terreiros, CRM funcional, dashboard profissional e persistência real.
+
+O resultado deve ser um produto da 7Teknologia com qualidade de software comercial, preparado para evolução modular e operação sustentável.
