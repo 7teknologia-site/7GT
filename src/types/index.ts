@@ -1,4 +1,4 @@
-// TypeScript Type Definitions for 7Teknologia Gestão de Terreiros
+// TypeScript Type Definitions for 7 Gestão de Terreiros (Uma solução 7Teknologia)
 
 export type UserRole =
   | 'superadmin'

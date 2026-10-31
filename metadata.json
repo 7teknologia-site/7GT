@@ -1,6 +1,6 @@
 {
-  "name": "7Teknologia Gestão de Terreiros",
-  "description": "SaaS multi-tenant completo para gestão administrativa, financeira, CRM, rituais a distância, membros e estoque para terreiros de matriz africana.",
+  "name": "7 Gestão de Terreiros",
+  "description": "Plataforma completa de gestão administrativa, financeira e organizacional para terreiros. Uma solução 7Teknologia.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

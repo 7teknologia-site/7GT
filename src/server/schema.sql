@@ -1,4 +1,4 @@
--- 7Teknologia Gestão de Terreiros - PostgreSQL Schema DDL
+-- 7 Gestão de Terreiros (Uma solução 7Teknologia) - PostgreSQL Schema DDL
 -- Multi-tenant architecture with strict tenant isolation, foreign keys, and indexes
 
 -- 1. SaaS Global Catalog & Tenants

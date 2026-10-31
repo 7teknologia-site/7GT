@@ -10,46 +10,62 @@ if (!fs.existsSync(path.dirname(DB_DIR))) {
   fs.mkdirSync(path.dirname(DB_DIR), { recursive: true });
 }
 
-// Clean up stale lock/pid files and ensure essential postgres subdirectories exist
-if (fs.existsSync(DB_DIR)) {
-  const pidFile = path.join(DB_DIR, 'postmaster.pid');
-  if (fs.existsSync(pidFile)) {
-    try {
-      fs.unlinkSync(pidFile);
-    } catch (e) {
-      // ignore
-    }
-  }
+let pgliteInstance: PGlite | null = null;
 
-  // Ensure standard PostgreSQL subdirectories exist if resumed from storage
-  const essentialDirs = [
-    'pg_notify', 'pg_tblspc', 'pg_twophase', 'pg_snapshots', 'pg_commit_ts',
-    'pg_stat', 'pg_stat_tmp', 'pg_replslot', 'pg_dynshmem', 'pg_logical',
-    'pg_multixact', 'pg_subtrans', 'pg_wal', 'pg_xact'
-  ];
-  for (const d of essentialDirs) {
-    const dirPath = path.join(DB_DIR, d);
-    if (!fs.existsSync(dirPath)) {
-      try {
-        fs.mkdirSync(dirPath, { recursive: true });
-      } catch (e) {
-        // ignore
+export function getDb(): PGlite {
+  if (!pgliteInstance) {
+    try {
+      if (fs.existsSync(DB_DIR)) {
+        const pidFile = path.join(DB_DIR, 'postmaster.pid');
+        if (fs.existsSync(pidFile)) {
+          try {
+            fs.unlinkSync(pidFile);
+          } catch (e) {
+            // ignore
+          }
+        }
       }
+      pgliteInstance = new PGlite(DB_DIR);
+    } catch (err) {
+      console.warn('[DB] Recovery needed on PGlite cluster, reinitializing:', err);
+      if (fs.existsSync(DB_DIR)) {
+        try {
+          fs.rmSync(DB_DIR, { recursive: true, force: true });
+        } catch (e) {
+          // ignore
+        }
+      }
+      pgliteInstance = new PGlite(DB_DIR);
     }
   }
-
-  // Ensure postgresql.conf exists
-  const confFile = path.join(DB_DIR, 'postgresql.conf');
-  if (!fs.existsSync(confFile)) {
-    try {
-      fs.writeFileSync(confFile, '# Minimal auto-generated postgresql.conf\nlisten_addresses = \'*\'\n');
-    } catch (e) {
-      // ignore
-    }
-  }
+  return pgliteInstance;
 }
 
-export const db = new PGlite(DB_DIR);
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  if (pgliteInstance) {
+    try { await pgliteInstance.close(); } catch (e) {}
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  if (pgliteInstance) {
+    try { await pgliteInstance.close(); } catch (e) {}
+  }
+  process.exit(0);
+});
+
+export const db: PGlite = new Proxy({} as PGlite, {
+  get(_target, prop) {
+    const realDb = getDb();
+    const val = (realDb as any)[prop];
+    if (typeof val === 'function') {
+      return val.bind(realDb);
+    }
+    return val;
+  }
+});
 
 export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   const result = await db.query(sql, params);
